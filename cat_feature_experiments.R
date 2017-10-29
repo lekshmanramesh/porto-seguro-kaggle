@@ -6,9 +6,8 @@ library(xgboost)
 library(caret)
 library(dplyr)
 library(MLmetrics)
-# Input data files are available in the "../input/" directory.
-# For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
-#Kevins Code :)
+
+#Kevins Features :)
 
 data=data.table(train)
 data[, amount_nas := rowSums(data == -1, na.rm = T)]
@@ -76,6 +75,8 @@ select_features_exp=function(train, test, feature){
   cv_inter=data.frame(name_feature=feature,metric=NormalizedGini(predicted,actual))
   return(cv_inter)
 }
+
+## For Loop to check each categorical variable
 
 for (i in (1:nrow(class_cat))){
   cv_smooth_target_encoding=rbind(cv_smooth_target_encoding,
