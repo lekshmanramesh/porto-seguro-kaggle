@@ -24,7 +24,7 @@ label=train_red$target
 actual=test_red$target
 train_red$target=NULL
 test_red$target=NULL
-## Smoothing Function
+## Smoothing Function applied while target encoding
 mod_target_encode=function(train, test, feature, k){
   mean_train=mean(label)
   a=data.frame(cbind(freq=table(train[,feature,with=F]),
@@ -82,3 +82,17 @@ for (i in (1:nrow(class_cat))){
   cv_smooth_target_encoding=rbind(cv_smooth_target_encoding,
                                   select_features_exp(train_red, test_red, as.character(class_cat$features[i])))
 }
+
+## Without target encoding
+cv_smooth_target_encoding=rbind(cv_smooth_target_encoding,
+                                select_features_exp(train_red, test_red, "None"))
+## All variables target encoded
+
+for (i in (1:nrow(class_cat))){
+  feature=as.character(class_cat$features[i])
+  train_red[,feature, with=F]=unlist(mod_target_encode(train_red, test_red, feature, 50)[1])
+  test_red[,feature, with=F]=unlist(mod_target_encode(train_red, test_red, feature, 50)[2])
+}
+
+cv_smooth_target_encoding=rbind(cv_smooth_target_encoding,
+                                select_features_exp(train_red, test_red, "None"))
