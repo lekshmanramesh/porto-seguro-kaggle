@@ -7,7 +7,9 @@ library(caret)
 library(dplyr)
 library(MLmetrics)
 
-#Kevins Features :)
+#Sampling to save time
+train=train[sample(nrow(train),300000),]
+train=data.table(train)
 
 data=data.table(train)
 data[, amount_nas := rowSums(data == -1, na.rm = T)]
@@ -31,7 +33,7 @@ for (i in (1:nrow(class_cat))){
   eval(parse(text=paste0("data$",feature,"=as.character(data$",feature,")")))
 }
 
-param_data=data.frame(max_depth=sample(2:30, 20, replace = T),
+param_data=data.frame(max_depth=sample(2:20, 20, replace = T),
                       subsample=runif(20),
                       colsample_bytree=runif(20))
 
@@ -45,9 +47,9 @@ xgb_normalizedgini <- function(preds, dtrain){
   return(list(metric = "NormalizedGini", value = score))
 }
 
-cv_final=NULL
-View(cv_final)
-for (i in (1:1)){
+cv_random_search=NULL
+View(cv_random_search)
+for (i in (1:nrow(param_data))){
   param <- list(objective = "binary:logistic",  label=label,
                 booster = "gbtree", eta = 0.1,
                 subsample = param_data$subsample[i],
@@ -57,8 +59,9 @@ for (i in (1:1)){
                 alpha=8,
                 lambda=1.3,
                 scale_pos_weight=1.6)
-  cv.res_red=xgb.cv(data=xgmat, nfold=2,nround=200, feval=xgb_normalizedgini, params = param, verbose=0)
+  cv.res_red=xgb.cv(data=xgmat, nfold=2,nround=150, feval=xgb_normalizedgini, params = param, 
+                    verbose=0,early_stopping_rounds = 20, maximize = T)
   cv_op=cv.res_red$evaluation_log
-  cv_op=cv_op[c(150,175,200),]
-  cv_final=rbind(cv_final,cv_op)
+  cv_op=cv_op[nrow(cv_op),]
+  cv_random_search=rbind(cv_random_search,cv_op)
 }
